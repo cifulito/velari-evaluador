@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Evaluador de perfil aromático VELARI">
+    <title>VELARI - Evaluador de Fragancias Premium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+        
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000000;
+            color: #e0e0e0;
+        }
+        
+        #root {
+            min-height: 100vh;
+            background: #000000;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.1); }
+            50% { box-shadow: 0 0 40px rgba(255, 255, 255, 0.2); }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <script type="text/babel">
+        const { useState } = React;
+
+        function AromaEvaluator() {
+            const [step, setStep] = useState(-1);
+            const [responses, setResponses] = useState({});
+            const [profile, setProfile] = useState(null);
+
+            const questions = [
+                {
+                    id: 'fresh_vs_warm',
+                    question: '¿Prefieres fragancias frescas y ligeras o cálidas e intensas?',
+                    options: [
+                        { label: 'Frescas y ligeras', value: 'fresh' },
+                        { label: 'Cálidas e intensas', value: 'warm' }
+                    ]
+                },
+                {
+                    id: 'floral_fruity',
+                    question: '¿Qué tipo de aroma te atrae más?',
+                    options: [
+                        { label: 'Aromas florales', value: 'floral' },
+                        { label: 'Notas frutales y dulces', value: 'fruity' },
+                        { label: 'Notas verdes y aromáticas', value: 'green' }
+                    ]
+                },
+                {
+                    id: 'intensity',
+                    question: '¿Cuál es tu nivel de intensidad preferido?',
+                    options: [
+                        { label: 'Suave y delicado', value: 'soft' },
+                        { label: 'Moderado', value: 'moderate' },
+                        { label: 'Potente y envolvente', value: 'strong' }
+                    ]
+                },
+                {
+                    id: 'occasion',
+                    question: '¿Para qué ocasión buscas tu fragancia?',
+                    options: [
+                        { label: 'Diaria y cotidiana', value: 'daily' },
+                        { label: 'Profesional', value: 'professional' },
+                        { label: 'Especial y sofisticada', value: 'special' }
+                    ]
+                },
+                {
+                    id: 'signature',
+                    question: '¿Buscas tu aroma de firma personal?',
+                    options: [
+                        { label: 'Sí, mi identidad olfativa', value: 'signature' },
+                        { label: 'Explorar varias opciones', value: 'explore' }
+                    ]
+                }
+            ];
+
+            const perfumes = {
+                'fresh-floral-soft-daily-signature': {
+                    name: 'Essence de Lumière',
+                    description: 'Floral fresco con notas de jazmín y bergamota.',
+                    notes: ['Bergamota', 'Jazmín', 'Almízcares blancos'],
+                    longevity: '6-8 horas',
+                    sillage: 'Moderado'
+                },
+                'fresh-floral-moderate-daily-signature': {
+                    name: 'Brise de Gardénia',
+                    description: 'Floral fresco-verde con carácter elegante.',
+                    notes: ['Gardenia', 'Notas verdes', 'Musgo blanco'],
+                    longevity: '8-10 horas',
+                    sillage: 'Moderado-Alto'
+                },
+                'fresh-fruity-soft-daily-signature': {
+                    name: 'Sorbet de Luxe',
+                    description: 'Frutal fresco y refinado.',
+                    notes: ['Pera', 'Manzana verde', 'Almizcares'],
+                    longevity: '6-8 horas',
+                    sillage: 'Suave'
+                },
+                'fresh-fruity-strong-special-signature': {
+                    name: 'Cristal de Frambuesa',
+                    description: 'Frutal brillante e intenso.',
+                    notes: ['Frambuesa', 'Limonada', 'Ambroxano'],
+                    longevity: '10-12 horas',
+                    sillage: 'Alto'
+                },
+                'fresh-green-moderate-daily-signature': {
+                    name: 'Verdure Prestige',
+                    description: 'Aromático verde puro.',
+                    notes: ['Melisa', 'Pimienta verde', 'Cedewood'],
+                    longevity: '8-10 horas',
+                    sillage: 'Moderado'
+                },
+                'warm-floral-strong-special-signature': {
+                    name: 'Orquídea Nocturna',
+                    description: 'Floral cálido y envolvente.',
+                    notes: ['Orquídea', 'Sándalo', 'Vainilla'],
+                    longevity: '12+ horas',
+                    sillage: 'Proyección fuerte'
+                },
+                'warm-fruity-moderate-professional-signature': {
+                    name: 'Ambar Sofisticado',
+                    description: 'Frutal-ámbar refinado.',
+                    notes: ['Cereza', 'Ámbar gris', 'Madera noble'],
+                    longevity: '10-12 horas',
+                    sillage: 'Moderado-Alto'
+                },
+                'warm-fruity-strong-special-signature': {
+                    name: 'Seducción Oriental',
+                    description: 'Frutal oriental cautivador.',
+                    notes: ['Piña', 'Ámbar', 'Almízcares oscuros'],
+                    longevity: '12+ horas',
+                    sillage: 'Proyección fuerte'
+                },
+                'warm-green-moderate-daily-signature': {
+                    name: 'Tabaco Dorado',
+                    description: 'Verde-ámbar cálido.',
+                    notes: ['Hoja de tabaco', 'Vainilla', 'Madera'],
+                    longevity: '10-12 horas',
+                    sillage: 'Moderado'
+                }
+            };
+
+            const handleAnswer = (value) => {
+                const newResponses = { ...responses, [questions[step].id]: value };
+                setResponses(newResponses);
+                
+                if (step < questions.length - 1) {
+                    setStep(step + 1);
+                } else {
+                    generateProfile(newResponses);
+                }
+            };
+
+            const generateProfile = (responses) => {
+                const key = `${responses.fresh_vs_warm}-${responses.floral_fruity}-${responses.intensity}-${responses.occasion}-${responses.signature}`;
+                const perfume = perfumes[key] || Object.values(perfumes)[Math.floor(Math.random() * Object.values(perfumes).length)];
+                
+                const profileText = { 'fresh': 'Fresco & Luminoso', 'warm': 'Cálido & Sensual' };
+                const categoryText = { 'floral': 'Floral', 'fruity': 'Frutal', 'green': 'Verde' };
+                
+                setProfile({
+                    mood: profileText[responses.fresh_vs_warm],
+                    category: categoryText[responses.floral_fruity],
+                    intensity: responses.intensity,
+                    perfume: perfume
+                });
+            };
+
+            const resetEvaluator = () => {
+                setStep(-1);
+                setResponses({});
+                setProfile(null);
+            };
+
+            return (
+                <div style={{ minHeight: '100vh', background: '#000000', position: 'relative' }}>
+                    {step === -1 && !profile && (
+                        <div style={{
+                            minHeight: '100vh',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            backgroundImage: 'url(./perfume.png)',
+                            backgroundSize: 'contain',
+                            backgroundPosition: 'center',
+                            backgroundRepeat: 'no-repeat',
+                            backgroundAttachment: 'fixed',
+                            position: 'relative',
+                            animation: 'fadeIn 1s ease-out'
+                        }}>
+                            <div style={{
+                                position: 'absolute',
+                                inset: 0,
+                                background: 'rgba(0, 0, 0, 0.7)',
+                                pointerEvents: 'none'
+                            }}></div>
+
+                            <h1 style={{
+                                fontSize: 'clamp(72px, 20vw, 160px)',
+                                fontFamily: "'Playfair Display', serif",
+                                fontWeight: '700',
+                                color: '#1a1a1a',
+                                letterSpacing: '-3px',
+                                position: 'absolute',
+                                bottom: '80px',
+                                left: '50px',
+                                zIndex: 1,
+                                textTransform: 'uppercase',
+                                margin: 0,
+                                animation: 'slideDown 0.8s ease-out 0.2s both'
+                            }}>
+                                VELARI
+                            </h1>
+
+                            <button
+                                onClick={() => setStep(0)}
+                                style={{
+                                    padding: '14px 40px',
+                                    fontSize: '16px',
+                                    fontWeight: '600',
+                                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                                    borderRadius: '50px',
+                                    background: 'rgba(255, 255, 255, 0.15)',
+                                    backdropFilter: 'blur(20px)',
+                                    color: '#ffffff',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease',
+                                    boxShadow: '0 8px 32px rgba(31, 38, 135, 0.37)',
+                                    position: 'absolute',
+                                    zIndex: 1,
+                                    animation: 'slideDown 0.8s ease-out 0.6s both'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.target.style.background = 'rgba(255, 255, 255, 0.25)';
+                                    e.target.style.transform = 'translateY(-2px)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.target.style.background = 'rgba(255, 255, 255, 0.15)';
+                                    e.target.style.transform = 'translateY(0)';
+                                }}
+                            >
+                                Comenzar
+                            </button>
+                        </div>
+                    )}
+
+                    {step >= 0 && step < questions.length && !profile && (
+                        <div style={{
+                            minHeight: '100vh',
+                            padding: '2rem 1rem',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            animation: 'fadeIn 0.6s ease-out'
+                        }}>
+                            <div style={{ maxWidth: '600px', width: '100%' }}>
+                                <div style={{ marginBottom: '3rem' }}>
+                                    <h2 style={{
+                                        fontSize: '24px',
+                                        fontFamily: "'Playfair Display', serif",
+                                        fontWeight: '500',
+                                        color: '#ffffff',
+                                        margin: '0 0 1rem 0'
+                                    }}>
+                                        {questions[step].question}
+                                    </h2>
+                                    
+                                    <div style={{
+                                        width: '100%',
+                                        height: '6px',
+                                        background: 'rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '10px',
+                                        overflow: 'hidden'
+                                    }}>
+                                        <div style={{
+                                            height: '100%',
+                                            background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.8))',
+                                            width: `${((step + 1) / questions.length) * 100}%`,
+                                            transition: 'width 0.4s ease'
+                                        }}></div>
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {questions[step].options.map((option) => (
+                                        <button
+                                            key={option.value}
+                                            onClick={() => handleAnswer(option.value)}
+                                            style={{
+                                                padding: '14px 18px',
+                                                fontSize: '15px',
+                                                fontWeight: '500',
+                                                border: '1px solid rgba(255, 255, 255, 0.15)',
+                                                borderRadius: '14px',
+                                                background: 'rgba(255, 255, 255, 0.05)',
+                                                backdropFilter: 'blur(20px)',
+                                                color: '#e0e0e0',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.3s ease',
+                                                textAlign: 'left'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.target.style.background = 'rgba(255, 255, 255, 0.12)';
+                                                e.target.style.border = '1px solid rgba(255, 255, 255, 0.25)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+                                                e.target.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+                                            }}
+                                        >
+                                            {option.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {profile && (
+                        <div style={{
+                            minHeight: '100vh',
+                            padding: '3rem 1rem',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            animation: 'fadeIn 0.8s ease-out'
+                        }}>
+                            <div style={{ maxWidth: '600px', width: '100%' }}>
+                                <h1 style={{
+                                    fontSize: '42px',
+                                    fontFamily: "'Playfair Display', serif",
+                                    fontWeight: '600',
+                                    color: '#ffffff',
+                                    textAlign: 'center',
+                                    marginBottom: '2rem'
+                                }}>
+                                    Tu Match Perfecto
+                                </h1>
+
+                                <div style={{
+                                    background: 'rgba(255, 255, 255, 0.08)',
+                                    borderRadius: '24px',
+                                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                                    padding: '2rem',
+                                    marginBottom: '1.5rem'
+                                }}>
+                                    <p style={{ fontSize: '12px', color: '#888', textTransform: 'uppercase', marginBottom: '1rem' }}>Tu Perfil</p>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                        <div>
+                                            <p style={{ fontSize: '13px', color: '#999', margin: 0 }}>HUMOR</p>
+                                            <p style={{ fontSize: '18px', fontWeight: '600', color: '#ffffff', margin: '8px 0 0 0' }}>
+                                                {profile.mood}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p style={{ fontSize: '13px', color: '#999', margin: 0 }}>CATEGORÍA</p>
+                                            <p style={{ fontSize: '18px', fontWeight: '600', color: '#ffffff', margin: '8px 0 0 0' }}>
+                                                {profile.category}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style={{
+                                    background: 'rgba(255, 255, 255, 0.1)',
+                                    borderRadius: '24px',
+                                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                                    padding: '2.5rem',
+                                    marginBottom: '1.5rem',
+                                    textAlign: 'center'
+                                }}>
+                                    <p style={{ fontSize: '12px', color: '#888', textTransform: 'uppercase', marginBottom: '1.5rem' }}>
+                                        RECOMENDADO PARA TI
+                                    </p>
+                                    <h2 style={{
+                                        fontSize: '32px',
+                                        fontFamily: "'Playfair Display', serif",
+                                        fontWeight: '600',
+                                        color: '#ffffff',
+                                        marginBottom: '1rem'
+                                    }}>
+                                        {profile.perfume.name}
+                                    </h2>
+                                    <p style={{
+                                        fontSize: '15px',
+                                        color: '#b0b0b0',
+                                        lineHeight: '1.8',
+                                        marginBottom: '2rem'
+                                    }}>
+                                        {profile.perfume.description}
+                                    </p>
+
+                                    <div style={{
+                                        borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                                        paddingTop: '2rem',
+                                        marginTop: '2rem',
+                                        textAlign: 'left'
+                                    }}>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+                                            <div>
+                                                <p style={{ fontSize: '12px', color: '#888', margin: 0, textTransform: 'uppercase' }}>Notas</p>
+                                                <p style={{ fontSize: '14px', color: '#e0e0e0', margin: '8px 0 0 0' }}>
+                                                    {profile.perfume.notes.join(', ')}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p style={{ fontSize: '12px', color: '#888', margin: 0, textTransform: 'uppercase' }}>Durabilidad</p>
+                                                <p style={{ fontSize: '14px', color: '#e0e0e0', margin: '8px 0 0 0' }}>
+                                                    {profile.perfume.longevity}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={resetEvaluator}
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px 20px',
+                                        fontSize: '15px',
+                                        fontWeight: '600',
+                                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                                        borderRadius: '12px',
+                                        background: 'rgba(255, 255, 255, 0.08)',
+                                        backdropFilter: 'blur(20px)',
+                                        color: '#e0e0e0',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.3s ease'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.target.style.background = 'rgba(255, 255, 255, 0.15)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.target.style.background = 'rgba(255, 255, 255, 0.08)';
+                                    }}
+                                >
+                                    Reiniciar
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<AromaEvaluator />);
+    </script>
+</body>
+</html>
